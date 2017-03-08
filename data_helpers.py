@@ -25,6 +25,7 @@ def load_labels_and_data(model_file, data_file, smallSentences=False):
         model = gs.models.KeyedVectors.load_word2vec_format(model_file, binary=True)
 	#model = gs.models.Word2Vec.load_word2vec_format(model_file, binary=True)
 	print "Model loaded"
+                        
 	# default these to the most popular sub-categories
 	labels['H'] = 0
 	labels['M'] = 1
@@ -33,28 +34,33 @@ def load_labels_and_data(model_file, data_file, smallSentences=False):
 	ret_labels = []
 	ref_sentences = []
 	can_sentences = []
+#        scores = np.array()
+        i = 0
 	with open(data_file) as f:
-		for i in xrange(0, len(f)):
+		for line in f:
 			if i % 6 == 0:
-				chi_sen = f[i]
+				chi_sen = line.strip()
 			elif i % 6 == 1:
-				ref_sen = f[i]
+				ref_sen = line.strip()
 			elif i % 6 == 2:
-				can_sen = f[i]
+				can_sen = line.strip()
 			elif i % 6 == 3:
-				score = f[i]
+				score = line.strip()
 			elif i % 6 == 4:
-				label = f[i]
+				label = line.strip()
 			elif i % 6 == 5:
 				lab_vec = np.zeros(2)
 				lab_vec[labels[label]] = 1
 				ret_labels.append(lab_vec)
 				smallSen1 = get_sentence_matrix(ref_sen, model)
 				smallSen2 = get_sentence_matrix(can_sen, model)
+                                #smallSen2 = np.concatenate([np.array(score), smallSen2])
 				ref_sentences.append(smallSen1)
 				can_sentences.append(smallSen2)
+                                #scores.column_stack(np.array(score))
+                        i += 1
 
-	return ref_sentences, can_sentences, ret_labels
+	return ref_sentences, can_sentences, ret_labels#, scores
 
 def get_sentence_matrix(sentence, model):
 	try:

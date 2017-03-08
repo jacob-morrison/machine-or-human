@@ -8,16 +8,16 @@ import time
 import datetime
 
 # parameters
-learning_rate = 0.01
-training_iters = 300000
-batch_size = 168
+learning_rate = 0.001
+training_iters = 500000
+batch_size = 64
 display_step = 10
 
 # network parameters
 n_input = 20 # truncate sentences (pad sentences with <PAD> tokens if less than this, cut off if larger)
 sen_dim = 300
-n_classes = 15 # 15 total senses
-dropout = 0.85 # dropout probability
+n_classes = 2 # 15 total senses
+dropout = 0.70 # dropout probability
 
 # tf graph input
 x1 = tf.placeholder(tf.float32, [None, sen_dim])
@@ -34,7 +34,7 @@ weights = {
     # fully connected, 7*7*64 inputs, 64 outputs
     'wd1': tf.Variable(tf.random_normal([104*256, 64],dtype=tf.float32)),
     # 128 inputs, 15 outputs (class prediction)
-    'out': tf.Variable(tf.random_normal([600, n_classes],dtype=tf.float32))
+    'out': tf.Variable(tf.random_normal([300, n_classes],dtype=tf.float32))
 }
 
 biases = {
@@ -51,8 +51,8 @@ biases = {
 #pred2 = np.mean(x2, axis=1)#conv_net(x2, weights, biases, keep_prob)
 
 # concatenate both representations
-out = tf.concat(1, [x1, x2])#[pred1, pred2])
-
+#out = tf.concat(1, [x1, x2])#[pred1, pred2])
+out = x2
 # predict the relation class
 pred = tf.add(tf.batch_matmul(out, weights['out']), biases['out'])
 print(tf.shape(pred))
@@ -78,7 +78,7 @@ tf.add_to_collection('keep_prob', keep_prob)
 with tf.Session() as sess:
 	sess.run(init)
 	step = 1
-	sentences1, sentences2, labels = data_helpers.load_labels_and_data('./Data/GoogleNews-vectors-negative300.bin', './Data/implicitTrainPDTB.txt', True)
+	sentences1, sentences2, labels = data_helpers.load_labels_and_data('../discourse-cnn/Data/GoogleNews-vectors-negative300.bin', './A5.train_set.labeled', True)
 	# keep training until we reach max iterations
         print(len(sentences1))
 	while step * batch_size < training_iters:
@@ -118,7 +118,7 @@ with tf.Session() as sess:
 	print("Saved model checkpoint to {}\n".format(path))
         accc = sess.run(accuracy, feed_dict={x1: sentences1, x2: sentences2, y: labels, keep_prob: 1.})
         print("testing accuracy on training set: " + str(accc))
-        sentences12, sentences22, labels2 = data_helpers.load_labels_and_data('./Data/GoogleNews-vectors-negative300.bin', './Data/devImplicitPDTB.txt', True)
+        sentences12, sentences22, labels2 = data_helpers.load_labels_and_data('../discourse-cnn/Data/GoogleNews-vectors-negative300.bin', './A5.dev_set.labeled', True)
         accc = sess.run(accuracy, feed_dict={x1: sentences12, x2: sentences22, y: labels2, keep_prob: 1.})
         print("testing accuracy on dev set: " + str(accc))
 
